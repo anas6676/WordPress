@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# Assign environment variables to local variables
+DB_HOST="${DB_HOST}"
+DB_NAME="${DB_NAME}"
+DB_PASSWORD="${DB_PASSWORD}"
+DB_USER="${DB_USERNAME}"
+
+# Update the system
+sudo yum update -y
+
+# Install necessary packages
+sudo yum install -y httpd wget php php-mysqlnd
+
+# Start and enable Apache
+sudo systemctl start httpd
+sudo systemctl enable httpd
+
+# Download and install WordPress
+if [ ! -f /var/www/html/wp-config.php ]; then
+    echo "WordPress not found. Downloading and installing..."
+    TMP_DIR=$(mktemp -d)
+    if ! wget https://wordpress.org/latest.tar.gz -O $TMP_DIR/wordpress.tar.gz; then
+        echo "Failed to download WordPress"
+        exit 1
+    fi
+    tar -xzf $TMP_DIR/wordpress.tar.gz -C $TMP_DIR
+    sudo cp -R $TMP_DIR/wordpress/* /var/www/html/
+    rm -rf $TMP_DIR
+    sudo chown -R apache:apache /var/www/html
+    sudo chmod -R 755 /var/www/html
+else
+    echo "WordPress already installed. Skipping download and install."
+fi
+
+# Create and configure wp-config.php
+if [ ! -f /var/www/html/wp-config.php ]; then
+    echo "Creating wp-config.php..."
+    sudo cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+    sudo sed -i "s/database_name_here/$DB_NAME/" /var/www/html/wp-config.php
+    sudo sed -i "s/username_here/$DB_USER/" /var/www/html/wp-config.php
+    sudo sed -i "s/password_here/$DB_PASSWORD/" /var/www/html/wp-config.php
+    sudo sed -i "s/localhost/$DB_HOST/" /var/www/html/wp-config.php
+    
+    # Set WP salts
+    SALTS=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/)
+    sudo sed -i "/put your unique phrase here/d" /var/www/html/wp-config.php
+    printf '%s\n' "$SALTS" | sudo tee -a /var/www/html/wp-config.php > /dev/null
+    
+    echo "wp-config.php created and configured."
+else
+    echo "wp-config.php already exists. Skipping configuration."
+fi
+
+# Ensure proper permissions
+sudo chown -R apache:apache /var/www/html
+sudo chmod -R 755 /var/www/html
+
+# Restart Apache
+sudo systemctl restart httpd
+
+echo "WordPress setup complete. Please visit your server's IP address to complete the installation."
+
+# Print out some debugging information
+echo "Debugging information:"
+echo "Apache status:"
+sudo systemctl status httpd
+echo "WordPress files:"
+ls -la /var/www/html
+echo "wp-config.php contents (sensitive information redacted):"
+sudo sed 's/define( *'[^']*' *, *'[^']*' *);/define(\'REDACTED\', \'REDACTED\');/g' /var/www/html/wp-config.php
