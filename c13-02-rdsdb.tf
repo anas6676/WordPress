@@ -17,7 +17,7 @@ module "rdsdb" {
   subnet_ids             = module.vpc.database_subnets
   vpc_security_group_ids = [module.rdsdb_sg.security_group_id]
 
-  # All available versions: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_MySQL.html#MySQL.Concepts.VersionMgmt
+  
   engine               = "mysql"
   engine_version       = "8.0.39"
   family               = "mysql8.0" # DB parameter group

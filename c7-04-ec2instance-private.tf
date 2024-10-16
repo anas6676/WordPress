@@ -3,8 +3,8 @@ module "ec2_private" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "5.7.0"
   name = "${var.environment}-private-instance"
-  #ami  = data.aws_ami.amzlinux2.id
-  ami = "ami-00f07845aed8c0ee7"
+  ami  = data.aws_ami.amzlinux2.id
+  #ami = "ami-00f07845aed8c0ee7"
   instance_type = var.instance_type
   key_name = var.instance_keypair
   vpc_security_group_ids = [module.private_sg.security_group_id]
