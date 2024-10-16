@@ -1,4 +1,9 @@
 
+ ![plot](AWS-Wordpress.jpg)
+
+
+
+
 # WordPress Terraform Project
 
 This project is designed to automate the infrastructure deployment for a WordPress environment using Terraform. Below is a description of each file in the project and the Terraform resources and blocks they contain.
@@ -21,8 +26,6 @@ This file contains generic variables that are used across the Terraform project.
 ### 3. `c3-local-values.tf`
 This file defines local values that are derived from the variables defined in the project.
 
-- **Blocks:**
-  - `locals`: Defines values such as `project_tag` and `vpc_cidr_block`.
 
 ### 4. `c4-01-vpc-variables.tf`, `c4-02-vpc-module.tf`, `c4-03-vpc-outputs.tf`
 These files are used to define and configure the Virtual Private Cloud (VPC) for the project.
